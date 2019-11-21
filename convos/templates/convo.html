@@ -1,0 +1,152 @@
+{% extends 'base.html' %} 
+{% load static%}
+<!-- Styles block -->
+{% block styles %}
+
+<style>
+    .syumu {
+        cursor: pointer;
+        color: blue;
+    }
+
+    .messages {
+        display: none;
+    }
+</style>
+ 
+ {% endblock %} 
+ {% block content %}
+
+<!--Styles-->
+
+
+<!--End of styles-->
+<body>
+
+    <h3>Welcome <b>{{current_user.username}}</b></h3>
+    <h4><b>{{current_user.id}}</b></h4>
+    
+      
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            {% for convo in convos %}
+                                <!-- <li class="syumu" id="syumu" link-data="{{convo.uuid}}/{{current_user.id}}">
+                                    {{convo.uuid}}
+                                </li> -->
+
+                                <li class="syumu" id="syumu" link-data="{{convo.uuid}}/{{current_user.id}}" user-data={{current_user.username}}>
+                                    {% for member in convo.members.all %}
+                                    {% if member != current_user %}
+                                    {{member.username}}
+                                    {% endif %}
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                    </div>
+
+                    <div class="col-md-6 messages" id="messages">
+
+                        <ul class="m-ul" id="m-ul">
+
+                        </ul>
+
+                        <textarea id="message" placeholder="write a message"></textarea>
+                        <br>
+                        <button id="send">Send</button>
+                        
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+    </div>
+
+        {% endblock %}
+
+
+        {% block scripts %}
+        <script>
+            
+        </script>
+        <script>
+
+            $('.syumu').on("click", function() {
+                // var data = this.attr('link-data');
+                var data = $(this).attr("link-data"); 
+                var username = $(this).attr("user-data");        
+
+                    /*
+                WEBSOCKET URL FORMAT
+                ws:localhost:8000/chats/{convo_id}/{current_user_id}/{other_user_id}
+              //   */
+              // let socket = new WebSocket("ws:localhost:8000/chats/1573826051630/1/2");
+              const url = "ws:localhost:" + window.location.port +"/chats/" + data;
+              let socket = new WebSocket(url);
+              var messages;
+              var ul = document.getElementById("m-ul");
+              socket.onopen = function(e) {
+                alert("[open] Connection established");
+                $('.messages').show();
+                // socket.send("My name is John");
+              };
+        
+              socket.onmessage = function(event) {
+
+                  if (messages === undefined) {
+                     messages = JSON.parse(event.data);
+                  } else {
+                      messages.push(JSON.parse(event.data).data);
+                  }
+
+                
+                $('.m-ul').empty();
+
+                messages.forEach(message => {
+                    var class_name = 'sender';
+
+                    if (message.receiver === username) {
+                        class_name = 'receiver';
+                    }
+
+                    var li = document.createElement("li");
+                    li.appendChild(document.createTextNode(message.content));
+                    li.className = class_name;
+                    ul.appendChild(li);
+                });
+                
+              };
+        
+              socket.onclose = function(event) {
+                if (event.wasClean) {
+                  alert(
+                    `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`
+                  );
+                } else {
+                  // e.g. server process killed or network down
+                  // event.code is usually 1006 in this case
+                  alert("[close] Connection died");
+                }
+              };
+        
+              socket.onerror = function(error) {
+                alert(`[error] ${error.message}`);
+              };
+        
+              document.getElementById("send").addEventListener("click", function() {
+                    var inputVal = document.getElementById("message").value;
+                    var message_data = {
+                        message: inputVal
+                    };
+        
+                    socket.send(JSON.stringify(message_data));
+                    document.getElementById("message").value = "";
+                });
+            });
+
+            </script>
+        {% endblock %}
+</body>
