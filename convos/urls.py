@@ -3,7 +3,7 @@ from . import views
 
 
 urlpatterns = [
-    path('', views.index),
+    path('chat/', views.index,name='chats'),
     path('my-convos/<int:user_id>', views.get_convos),
     # path('chat/', views.create_message_fb,name="chats"),
     
