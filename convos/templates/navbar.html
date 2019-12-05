@@ -77,9 +77,11 @@ input::-webkit-input-placeholder {
       <li class="nav-item">
           <a class="nav-link" style="color: #556B2F;" href="{% url 'learn' %}">Learn</a>
         </li>
+        {% if user.is_authenticated %}
         <li class="nav-item">
-          <a class="nav-link" style="color: #556B2F;" href="{% url 'profile' request.user.id%}">Profile</a>
+          <a class="nav-link" style="color: #556B2F;" href="{% url 'profile' user.id%}">Profile</a>
         </li>
+        {% endif %}
       <li class="nav-item">
         <a class="nav-link" style="color: #556B2F;" href="{% url 'chats' %}">Chats</a>
       </li>
